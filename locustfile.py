@@ -1,14 +1,19 @@
 import base64
 
-from locust import HttpLocust, TaskSet, task
+from locust import HttpUser, TaskSet, task
 from random import randint, choice
-
-
+from urllib3.exceptions import InsecureRequestWarning
+from urllib3 import disable_warnings
+disable_warnings(InsecureRequestWarning)
 class WebTasks(TaskSet):
+
+    def on_start(self):
+        """ on_start is called when a Locust start before any task is scheduled """
+        self.client.verify = False
 
     @task
     def load(self):
-        base64string = base64.encodestring('%s:%s' % ('user', 'password')).replace('\n', '')
+        base64string = base64.encodebytes(('%s:%s' % ('vahirwad', 'varad')).encode('utf8')).decode('utf8').replace('\n', '')
 
         catalogue = self.client.get("/catalogue").json()
         category_item = choice(catalogue)
@@ -24,7 +29,7 @@ class WebTasks(TaskSet):
         self.client.post("/orders")
 
 
-class Web(HttpLocust):
-    task_set = WebTasks
+class Web(HttpUser):
+    tasks    = [WebTasks]
     min_wait = 0
     max_wait = 0
